@@ -3,7 +3,9 @@
 package netlink
 
 import (
+	"crypto/rand"
 	"encoding/binary"
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -122,6 +124,26 @@ func TestTooManyEntries(t *testing.T) {
 	rt.register(makeTranslatedConn("10.0.0.2:12345", "50.30.40.10:80", "20.0.0.0:80"))
 }
 
+// Run this test with -memprofile to get an insight of how much memory is
+// allocated/used by Conntracker to store maxStateSize entries.
+// Example: go test -run TestConntrackerMemoryAllocation -memprofile mem.prof .
+func TestConntrackerMemoryAllocation(t *testing.T) {
+	const maxStateSize = 100000
+	rt := newConntracker()
+	rt.maxStateSize = maxStateSize
+	addressGen := randomAddressGen()
+
+	for i := 0; i < rt.maxStateSize; i++ {
+		c := makeTranslatedConn(
+			fmt.Sprintf("%s:12345", addressGen()),
+			fmt.Sprintf("%s:80", addressGen()),
+			fmt.Sprintf("%s:80", addressGen()),
+		)
+
+		rt.register(c)
+	}
+}
+
 func newConntracker() *realConntracker {
 	return &realConntracker{
 		state:                make(map[connKey]*connValue),
@@ -167,4 +189,17 @@ func parts(p string) ([]byte, []byte) {
 	ip := net.ParseIP(segments[0]).To4()
 
 	return ip, b
+}
+
+func randomAddressGen() func() util.Address {
+	b := make([]byte, 4)
+	return func() util.Address {
+		for {
+			if _, err := rand.Read(b); err != nil {
+				continue
+			}
+
+			return util.V4AddressFromBytes(b)
+		}
+	}
 }
