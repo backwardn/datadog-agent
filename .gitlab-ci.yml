@@ -469,32 +469,23 @@ agent_suse-x64:
 
 # build Agent package for Windows
 build_windows_msi_x64:
-  ## this is a weird workaround. Can't use the built-in CI_PROJECT_DIR because the path separators
-  ## are wrong.  Record the PROJECT dir with the correct path separators to be used later
-  before_script:
-    - set WIN_CI_PROJECT_DIR=%CD%
-    - if exist .omnibus rd /s/q .omnibus
-    - mkdir .omnibus\pkg
-    - if exist \omnibus-ruby rd /s/q \omnibus-ruby
-    - if exist %OMNIBUS_BASE_DIR_WIN% rd /s/q %OMNIBUS_BASE_DIR_WIN%
-    - if exist \opt\datadog-agent rd /s/q \opt\datadog-agent
-    - if exist %GOPATH%\src rd /s/q %GOPATH%\src
-    - mkdir %GOPATH%\src\github.com\DataDog\datadog-agent
-    - xcopy /q/h/e/s * %GOPATH%\src\github.com\DataDog\datadog-agent
-    - cd %GOPATH%\src\github.com\DataDog\datadog-agent
-    - inv -e deps --verbose --dep-vendor-only --no-checks
   stage: package_build
+  tags: ["runner:windows-docker", "windowsversion:1809"]
+  # Unavailable on gitlab < 12.3
+  # timeout: 2h 00m
+  before_script: 
+    - echo "skipping default before script"
+  script:
+    - mkdir .omnibus\pkg
+    - docker run --rm -m 4096M -v "$(Get-Location):c:\mnt" -e WINDOWS_BUILDER=true -e IS_AWS_CONTAINER=true -e SIGN_WINDOWS=true 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/datadog-agent-builders/windows_x64:v1782031-7bc5447 \build-agent6.bat --release-version %RELEASE_VERSION%
+    - copy build-out\*.msi .omnibus\pkg
+  artifacts:
+    expire_in: 2 weeks
+    paths:
+      - .omnibus/pkg
   variables:
     WINDOWS_BUILDER: 'true'
     CREDENTIALS_FILE_PATH: 'c:\users\gitlab\.aws\config'
-  tags: ["runner:windows-agent6"]
-  script:
-    # remove artifacts from previous pipelines that may come from the cache
-    - cd %GOPATH%\src\github.com\DataDog\datadog-agent
-    # use --skip-deps since the deps are installed by `before_script`
-    - inv agent.omnibus-build --release-version %RELEASE_VERSION_6% --omnibus-s3-cache --base-dir %OMNIBUS_BASE_DIR_WIN_OMNIBUS% --skip-deps
-    # copy the results from the build dir to here, because artifacts must be relative to the project directory
-    - copy %OMNIBUS_BASE_DIR_WIN%\pkg\* %WIN_CI_PROJECT_DIR%\.omnibus\pkg
   artifacts:
     expire_in: 2 weeks
     paths:
