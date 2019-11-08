@@ -10,15 +10,15 @@
   source = "github.com/adjust/goautoneg"
 
 [[projects]]
-  digest = "1:a6fa96ada3d26514dfee37255ba66f99160993f2c3eaede0c6f1b19fba6e7ad7"
+  branch = "mfpierre/collect-pods"
+  digest = "1:92095d1b0b3db63aee5dcd034c4eb9cd470f50cb55aa4fd0966f9c855c1321d0"
   name = "github.com/DataDog/agent-payload"
   packages = [
     "gogen",
     "process",
   ]
   pruneopts = ""
-  revision = "2904bbe1a881e01d78a287a2a8027ce157776116"
-  version = "4.14.0"
+  revision = "694a756e39dea46b067403a2c0d242ff1a205a7f"
 
 [[projects]]
   digest = "1:e64fddc819e2abc68792a743dd857c379449a56f2b9eaf030c03fb0ec19de884"
@@ -2121,6 +2121,7 @@
     "k8s.io/client-go/informers/core/v1",
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/kubernetes/fake",
+    "k8s.io/client-go/kubernetes/scheme",
     "k8s.io/client-go/kubernetes/typed/core/v1",
     "k8s.io/client-go/listers/autoscaling/v2beta1",
     "k8s.io/client-go/listers/core/v1",
