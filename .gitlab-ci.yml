@@ -481,6 +481,22 @@ agent_deb-arm-a6:
   <<: *skip_when_unwanted_on_6
   <<: *agent_build_common_deb
 
+agent_deb-arm-a7:
+  stage: package_build
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/datadog-agent-builders/deb_arm_x64:$DATADOG_AGENT_ARMBUILDIMAGES
+  tags: ["runner:docker-arm", "platform:arm64"]
+  variables:
+    AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: /credentials
+    PYTHON_RUNTIMES: '3'
+    DESTINATION_DEB: 'datadog-agent_7_arm64.deb'
+    DESTINATION_DBG_DEB: 'datadog-agent-dbg_7_arm64.deb'
+  before_script:
+    - source /root/.bashrc 
+    - inv -e deps --verbose --dep-vendor-only
+    - export RELEASE_VERSION=$RELEASE_VERSION_7
+  <<: *skip_when_unwanted_on_6
+  <<: *agent_build_common_deb
+
 # build Agent package for deb-x64
 puppy_deb-x64:
   stage: package_build
